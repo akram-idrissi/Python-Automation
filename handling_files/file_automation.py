@@ -1,99 +1,93 @@
 import os
-
-from glob import glob
-
-number = 0
-base_path = "C:/Users/Ce pc/Downloads"
-os.chdir(base_path)
+# FileNotFoundError, ValueError, TypeError
 
 
-def extension(file_name):
-    """ returns the name and extension of a file ."""
-    name, ext = os.path.splitext(file_name)
-    name_ = name.replace("C:/Users/Ce pc/Downloads\\", "")
-    return name_, ext
+class FileAutomation:
+    def __init__(self, path):
+        self.path = path
+        os.chdir(self.path)
+
+    @staticmethod
+    def set_directory(path):
+        os.chdir(path)
+
+    @staticmethod
+    def get_extension(file_name):
+        return os.path.splitext(file_name)
+
+    @staticmethod
+    def make_dir(directory):
+        if not os.path.exists(directory) and directory:
+            os.mkdir(directory)
+
+    @staticmethod
+    def get_files(directory):
+        # path = os.path.join(self.path, directory)
+        return os.listdir(directory)
+
+    def get_index(self, directory):
+        try:
+            files = self.get_files(directory)
+            indexes = [int(file_name.split("-")[0]) for file_name in files]
+            last_index = max(indexes)
+            return last_index
+        except ValueError:
+            return 0
+
+    def move_files(self, name, extension, number):
+        file_name = "".join([name, extension])
+        number += 1
+        new_file_name = "".join([str(number).zfill(2), "-", file_name])
+        old_path = os.path.join(self.path, file_name)
+        new_path = os.path.join(self.path, extension, new_file_name)
+        os.rename(old_path, new_path)
+
+    def move_folder(self, directory, number):
+        number += 1
+        new_file_name = "".join([str(number).zfill(2), "-", directory])
+        old_path = os.path.join(self.path, directory)
+        new_path = os.path.join(self.path, "Folders", new_file_name)
+        os.rename(old_path, new_path)
+
+    def if_delete(self, directory):
+        files = self.get_files(directory)
+        last_index = self.get_index(directory)
+        total_files = len(files)
+
+        if (last_index > 0) and (last_index > total_files):
+            file_numbers = list(range(1, total_files + 1))
+            to_string = list(map(str, file_numbers))
+            two_digit_format = [i.zfill(2) for i in to_string]
+            split_files = [f.split("-") for f in files]
+
+            n = 0
+            for name in split_files:
+                new_name = "".join([two_digit_format[n], "-", "".join(name[1:])])
+                n += 1
+                old_path = "".join([directory, "/", "-".join(name)])
+                new_path = "".join([directory, "/", new_name])
+
+                os.rename(old_path, new_path)
+
+    def run(self):
+        for file_name in os.listdir():
+            name, extension = self.get_extension(file_name)
+            if "." in name and extension == "":
+                continue
+
+            if not extension and "." not in name and name != "Folders":
+                self.make_dir("Folders")
+                last_index = self.get_index("Folders")
+                self.move_folder(name, last_index)
+            if name and extension:
+                # print(extension)
+                self.make_dir(extension)
+                last_index = self.get_index(extension)
+                self.move_files(name, extension, last_index)
+        list(map(self.if_delete, os.listdir()))
 
 
-def make_dir(ext):
-    # creates a directory if it doesn't already exist.
-    if not os.path.exists(ext) and ext != "":
-        os.makedirs(ext)
-        return True
-    return False
-
-
-def enum_max(ext):
-    """ returns the index of the last file in the folder, 0 if it's empty """
-    try:
-        enum = clean_names(ext)
-        enum_max = max(enum)
-        return enum_max
-    except:
-        return 0
-
-
-def clean_names(ext):
-    names = glob(ext + "/*")
-    clean_names = [name.replace(ext + "\\", "") for name in names]
-    numbers = [int(name.split('-')[0]) for name in clean_names]
-    return numbers
-
-
-def move_files(name, ext, number):
-    """ move the files from downloads folder to the given folder """
-    full_name = name + ext
-    number += 1
-    new = str(number).zfill(2) + '-' + full_name
-    os.rename(base_path + '/' + full_name, base_path + '/' + ext + '/' + new)
-
-
-def move_folders(name, ext, number):
-    """ move the folders from downloads folder to the given folder """
-    full_name = name + ext
-    number += 1
-    new = str(number).zfill(2) + '-' + full_name
-    os.rename(base_path + '/' + full_name, base_path + '/' + "folders" + '/' + new)
-
-
-def if_delete(ext):
-    """ when you delete a file """
-    all_files = [name.replace(ext + "\\", "") for name in glob(ext + '/*')]
-    lastFile_num = enum_max(ext)
-    all_files_length = len(all_files)
-
-    if (lastFile_num > 0) and (lastFile_num > all_files_length):
-
-        l = list(range(1, all_files_length + 1))
-        n = list(map(str, l))
-        k = [i.zfill(2) for i in n]
-        m = [file.split('-') for file in all_files]
-
-        i = 0
-        for name in m:
-            new_name = k[i] + '-' + "".join(name[1:])
-            i += 1
-            os.rename(ext + '/' + '-'.join(name), ext + '/' + new_name)
-
-
-print("We're Starting ...")
-for filename in glob(base_path + '/*'):
-    done = False
-    name, ext = extension(filename)
-    if ext == "" and "." not in name:
-        if name == "folders":
-            continue
-        make_dir("folders")
-        number = enum_max(ext)
-        move_folders(name, ext, number)
-        list(map(if_delete, os.listdir()))
-        done = True
-
-    make_dir(ext)
-    number = enum_max(ext)
-    try:
-        move_files(name, ext, number)
-    except PermissionError:
-        pass
-
-list(map(if_delete, os.listdir()))
-print("it's done !!")
+if __name__ == "__main__":
+    files_path = r"C:\Users\Ce pc\Downloads"
+    app = FileAutomation(files_path)
+    app.run()
