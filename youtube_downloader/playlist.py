@@ -48,7 +48,6 @@ class LoadPlaylist:
             print(f"Downloading {play_list.title}..")
             self.download(play_list)
             mp4_videos = self.load()
-            # print(mp4_videos)
             title = play_list.title + " - mp3"
             self.make_dir(title)
             for video in mp4_videos:
